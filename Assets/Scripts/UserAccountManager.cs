@@ -72,4 +72,74 @@ public void SignIn(string username, string password){
         }
     );   
 }
+    // SIGN IN WITH DEVICE ID
+
+    void GetDeviceID(out string android_id, out string ios_id, out string custom_id){
+        android_id = string.Empty;
+        ios_id = string.Empty;
+        custom_id = string.Empty;
+
+        if(Application.platform == RuntimePlatform.Android){
+            AndroidJavaClass up = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            AndroidJavaObject currentActivity = up.GetStatic<AndroidJavaObject>("currentActivity");
+            AndroidJavaObject contentResolver = currentActivity.Call<AndroidJavaObject>("getContentResolver");
+            AndroidJavaClass secure = new AndroidJavaClass("android.provider.Settings$Secure");
+            android_id = secure.CallStatic<string>("getString", contentResolver, "android_id");
+
+        }else if(Application.platform == RuntimePlatform.IPhonePlayer){
+            ios_id = UnityEngine.iOS.Device.vendorIdentifier;
+
+        }else{
+            custom_id = SystemInfo.deviceUniqueIdentifier;
+        }
+    }
+
+    public void SignInWithDevice(){
+        GetDeviceID(out string android_id, out string ios_id, out string custom_id);
+
+        if(!string.IsNullOrEmpty(android_id)){
+            Debug.Log($"Logging in with Android Device ID");
+            PlayFabClientAPI.LoginWithAndroidDeviceID(new LoginWithAndroidDeviceIDRequest() {
+                AndroidDevice = android_id,
+                OS = SystemInfo.operatingSystem,
+                AndroidDeviceId = SystemInfo.deviceModel,
+                TitleId = PlayFabSettings.TitleId,
+                CreateAccount = true
+            }, response => {
+                Debug.Log($"Sucessful login with Android Device ID");
+                OnSignInSuccess.Invoke();
+            }, error => {
+                Debug.Log($"Unsucessful login with Android Device ID : {error.ErrorMessage}");
+                OnSignInFailed.Invoke(error.ErrorMessage);
+            });
+        }else if(!string.IsNullOrEmpty(ios_id)){
+            Debug.Log($"Logging in with IOS Device ID");
+            PlayFabClientAPI.LoginWithIOSDeviceID(new LoginWithIOSDeviceIDRequest() {
+                DeviceId = ios_id,
+                OS = SystemInfo.operatingSystem,
+                DeviceModel = SystemInfo.deviceModel,
+                TitleId = PlayFabSettings.TitleId,
+                CreateAccount = true
+            }, response => {
+                Debug.Log($"Sucessful login with IOS Device ID");
+                OnSignInSuccess.Invoke();
+            }, error => {
+                Debug.Log($"Unsucessful login with IOS Device ID : {error.ErrorMessage}");
+                OnSignInFailed.Invoke(error.ErrorMessage);
+            });
+        }else if(!string.IsNullOrEmpty(custom_id)){
+            Debug.Log($"Logging in with Custom Device ID");
+            PlayFabClientAPI.LoginWithCustomID(new LoginWithCustomIDRequest() {
+                CustomId = custom_id,
+                TitleId = PlayFabSettings.TitleId,
+                CreateAccount = true
+            }, response => {
+                Debug.Log($"Sucessful login with Custom Device ID");
+                OnSignInSuccess.Invoke();
+            }, error => {
+                Debug.Log($"Unsucessful login with Custom Device ID : {error.ErrorMessage}");
+                OnSignInFailed.Invoke(error.ErrorMessage);
+            });
+        }
+    }
 }
