@@ -26,6 +26,8 @@ public class UIProfile : MonoBehaviour
     void SignIn()
     {
         canvasGroup.alpha = 1;
+        canvasGroup.blocksRaycasts = true;
+        canvasGroup.interactable = true;
     }
 
     void ProfileDataUpdated(ProfileData profileData)

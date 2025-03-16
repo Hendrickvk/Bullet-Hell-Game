@@ -50,9 +50,20 @@ public class UserProfile : MonoBehaviour
 
 
     [ContextMenu("Set Profile Data")]
-    void SetUserData(){
-        UserAccountManager.Instance.SetUserData("ProfileData", JsonUtility.ToJson(profileData));
+    void SetUserData(UnityAction OnSuccess = null){
+        UserAccountManager.Instance.SetUserData("ProfileData", JsonUtility.ToJson(profileData), OnSuccess);
     }
+
+    public void AddXP(){
+        profileData.level += Random.Range (0f, 1f);
+        SetUserData (GetUserData);
+    }
+
+    public void SetPlayerName(string playerName){
+        profileData.playerName = playerName;
+        SetUserData(GetUserData);
+    }
+
 }
 
 

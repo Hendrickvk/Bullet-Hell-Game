@@ -168,13 +168,14 @@ public void SignIn(string username, string password){
         });
     }
 
-    public void SetUserData(string key, string value) {
+    public void SetUserData(string key, string value, UnityAction OnSuccess = null) {
         PlayFabClientAPI.UpdateUserData(new UpdateUserDataRequest(){
             Data = new Dictionary<string, string>(){
                 {key, value}
             }
         }, responde => {
             Debug.Log($"Successful SetUserData");
+            OnSuccess.Invoke();
 
         }, error => {
             Debug.Log($"Unsuccessful SetUserData: {error.ErrorMessage}");
