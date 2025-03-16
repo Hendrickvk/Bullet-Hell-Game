@@ -18,6 +18,10 @@ public class UserAccountManager : MonoBehaviour {
     public static UnityEvent<string> OnSignInFailed = new UnityEvent<string>();
     public static UnityEvent<string> OnCreateAccountFailed = new UnityEvent<string>();
 
+    public static UnityEvent<string, string> OnUserDataRetrieved = new UnityEvent<string, string>();
+
+    string playfabID;
+
     // Método chamado quando o script é iniciado.
     void Awake()
     {
@@ -61,6 +65,7 @@ public void SignIn(string username, string password){
         response =>{
             Debug.Log($"Sucessful Account Login: {username}");
             // Dispara evento de sucesso no login.
+            playfabID = response.PlayFabId;
             OnSignInSuccess.Invoke();
 
         },
@@ -107,6 +112,7 @@ public void SignIn(string username, string password){
                 CreateAccount = true
             }, response => {
                 Debug.Log($"Sucessful login with Android Device ID");
+                playfabID = response.PlayFabId;
                 OnSignInSuccess.Invoke();
             }, error => {
                 Debug.Log($"Unsucessful login with Android Device ID : {error.ErrorMessage}");
@@ -122,6 +128,7 @@ public void SignIn(string username, string password){
                 CreateAccount = true
             }, response => {
                 Debug.Log($"Sucessful login with IOS Device ID");
+                playfabID = response.PlayFabId;
                 OnSignInSuccess.Invoke();
             }, error => {
                 Debug.Log($"Unsucessful login with IOS Device ID : {error.ErrorMessage}");
@@ -135,6 +142,7 @@ public void SignIn(string username, string password){
                 CreateAccount = true
             }, response => {
                 Debug.Log($"Sucessful login with Custom Device ID");
+                playfabID = response.PlayFabId;
                 OnSignInSuccess.Invoke();
             }, error => {
                 Debug.Log($"Unsucessful login with Custom Device ID : {error.ErrorMessage}");
@@ -142,4 +150,36 @@ public void SignIn(string username, string password){
             });
         }
     }
+
+    //USERDATA
+
+    public void GetUserData(string key) {
+        PlayFabClientAPI.GetUserData(new GetUserDataRequest(){
+            PlayFabId = playfabID,
+            Keys = new List<string>(){
+                key
+            }
+        }, response => {
+            Debug.Log($"Successful GetUserData");
+            if(response.Data.ContainsKey(key)) OnUserDataRetrieved.Invoke(key, response.Data[key].Value);
+            else OnUserDataRetrieved.Invoke(key, null);
+        }, error => {
+            Debug.Log($"Unsuccessful GetUserData: {error.ErrorMessage}");
+        });
+    }
+
+    public void SetUserData(string key, string value) {
+        PlayFabClientAPI.UpdateUserData(new UpdateUserDataRequest(){
+            Data = new Dictionary<string, string>(){
+                {key, value}
+            }
+        }, responde => {
+            Debug.Log($"Successful SetUserData");
+
+        }, error => {
+            Debug.Log($"Unsuccessful SetUserData: {error.ErrorMessage}");
+        });
+
+    }
+    
 }
